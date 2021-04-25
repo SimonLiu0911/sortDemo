@@ -1,7 +1,6 @@
 <script>
 import TopListItemTemplate from '../components/topListItemTemplate'
 import ToppingListItemTemplate from '../components/toppingListItemTemplate'
-import $ from 'jquery'
 
 export default {
   data () {
@@ -44,6 +43,30 @@ export default {
     }
   },
   methods: {
+    checkValid (sortIndex) {
+      return sortIndex >= this.MIN_INDEX && sortIndex <= this.MAX_INDEX
+    },
+    sortByInput (item, sortIndex) {
+      // TODO
+      if (this.checkValid(sortIndex)) {
+        this.sort.map((row, i, arr) => {
+          if (row.inputValue === sortIndex) {
+            arr[i].inputValue = 0
+          }
+        })
+      } else {
+        sortIndex = 0
+      }
+      this.changeItem(item.id, { inputValue: sortIndex })
+    },
+    changeItem (id, data = {}) {
+      this.sort = this.sort.map(item => {
+        if (item.id === id) {
+          return { ...item, ...data }
+        }
+        return item
+      })
+    },
     // 增加到已分類
     addSort (id, title) {
       this.judgeLength()
@@ -64,30 +87,13 @@ export default {
       const item = {
         id: id,
         title: `${title}`,
-        inputValue: ''
+        inputValue: this.sort.length + 1
       }
       this[t].push(item)
-    },
-    onClickStore () {
-      const $selectedInput = $('.sortNum')
-      const $selectedInputArr = Array.from($selectedInput)
-      console.log(this.sort)
-      console.log(this.unsort)
-      for (let i = 0; i < $selectedInputArr.length; i++) {
-        this.sort[i].inputValue = $($selectedInputArr[i]).val()
-      }
-      this.clearValue()
     },
     sortItem () {
       this.sort = this.sort.sort(function (a, b) {
         return a.inputValue - parseInt(b.inputValue)
-      })
-    },
-    clearValue () {
-      const $TopListItem = $('.TopListItemTemplate')
-      const $TopListItemArr = Array.from($TopListItem)
-      $TopListItemArr.forEach(item => {
-        $($(item).find('td')[0]).find('input').val('')
       })
     },
     // 判斷已分類陣列長度
@@ -101,6 +107,9 @@ export default {
   computed: {
     btnActive () {
       return this.sort.length >= this.MAX_INDEX
+    },
+    sorting () {
+      return this.sort.slice().sort((a, b) => a.inputValue - b.inputValue)
     }
   },
   components: {
@@ -116,6 +125,9 @@ export default {
       <div class="row">
         <div class="col-12 col-md-8 col-xl-6">
           <div class="card">
+            <pre>
+              {{ sorting }}
+            </pre>
             <div class="card-header">
               <h5 class="card-title h5">置頂排序中 (5 筆)</h5>
             </div>
@@ -132,18 +144,18 @@ export default {
                   <!-- Top -->
                   <TopListItemTemplate
                     class="TopListItemTemplate"
-                    v-for="(TopListItem, index) in sort"
+                    v-for="(TopListItem, index) in sorting"
                     :key="index"
-                    :top-list-item="TopListItem"
-                    :maxIndex="MAX_INDEX"
-                    :minIndex="MIN_INDEX"
-                    @remove-sort="removeSort(TopListItem.id, TopListItem.title)"
+                    :title="TopListItem.title"
+                    :inputValue="TopListItem.inputValue"
+                    @removeSort="removeSort(TopListItem.id, TopListItem.title)"
+                    @change="($value) => sortByInput(TopListItem, $value)"
                   ></TopListItemTemplate>
                 </tbody>
               </table>
             </div>
             <div class="card-footer text-right">
-              <button type="submit" class="btn btn-success" @click="onClickStore">儲存</button>
+              <button type="submit" class="btn btn-success" @click="()=>{}">儲存</button>
             </div>
           </div>
         </div>
@@ -172,8 +184,8 @@ export default {
                     class="ToppingListItemTemplate"
                     v-for="(ToppingListItem, index) in unsort"
                     :key="index"
-                    :topping-list-item="ToppingListItem"
-                    @add-sort="addSort(ToppingListItem.id, ToppingListItem.title)"
+                    :title="ToppingListItem.title"
+                    @addSort="addSort(ToppingListItem.id, ToppingListItem.title)"
                     :btn-active="btnActive"
                   ></ToppingListItemTemplate>
                 </tbody>
