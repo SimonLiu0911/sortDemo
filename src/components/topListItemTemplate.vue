@@ -1,7 +1,7 @@
 <script>
 export default {
   props: {
-    title: {
+    imgURL: {
       type: String,
       default: ''
     },
@@ -45,7 +45,12 @@ export default {
         @input="changeValue"
       />
     </td>
-    <td>{{ title }}</td>
+    <td>
+      <!-- {{ imgURL }} -->
+      <div class="img-wrapper">
+        <img :src="imgURL" />
+      </div>
+    </td>
     <td>
       <button
         type="button"
@@ -57,3 +62,16 @@ export default {
     </td>
   </tr>
 </template>
+
+<style scoped>
+.img-wrapper  {
+  width: 200px;
+  height: 200px;
+}
+img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+</style>

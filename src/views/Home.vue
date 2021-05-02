@@ -7,37 +7,40 @@ export default {
     return {
       sort: [],
       unsort: [
-        {
-          id: '21',
-          title: '圖片1',
-          inputValue: 1
-        },
-        {
-          id: '22',
-          title: '圖片2',
-          inputValue: 2
-        },
-        {
-          id: '23',
-          title: '圖片3',
-          inputValue: 3
-        },
-        {
-          id: '24',
-          title: '圖片4',
-          inputValue: 4
-        },
-        {
-          id: '25',
-          title: '圖片5',
-          inputValue: 5
-        },
-        {
-          id: '26',
-          title: '圖片6',
-          inputValue: 6
-        }
+        // {
+        //   id: '21',
+        //   imgURL: '/images/pic1.jpg',
+        //   // imgURL: '圖片1',
+        //   inputValue: 1
+        // },
+        // {
+        //   id: '22',
+        //   imgURL: '/images/pic2.jpg',
+        //   inputValue: 2
+        // },
+        // {
+        //   id: '23',
+        //   imgURL: '/images/pic3.jpg',
+        //   inputValue: 3
+        // },
+        // {
+        //   id: '24',
+        //   imgURL: '/images/pic4.jpg',
+        //   inputValue: 4
+        // },
+        // {
+        //   id: '25',
+        //   imgURL: '/images/pic5.jpg',
+        //   inputValue: 5
+        // },
+        // {
+        //   id: '26',
+        //   imgURL: '/images/pic6.jpg',
+        //   inputValue: 6
+        // }
       ],
+      image: null,
+      preview: null,
       MIN_INDEX: 1,
       MAX_INDEX: 5
     }
@@ -68,25 +71,25 @@ export default {
       })
     },
     // 增加到已分類
-    addSort (id, title) {
+    addSort (id, imgURL) {
       this.judgeLength()
       this.deleteItem(id, 'unsort')
-      this.addItem(id, title, 'sort')
+      this.addItem(id, imgURL, 'sort')
     },
     // 刪除已分類
-    removeSort (id, title) {
+    removeSort (id, imgURL) {
       this.deleteItem(id, 'sort')
-      this.addItem(id, title, 'unsort')
+      this.addItem(id, imgURL, 'unsort')
     },
     deleteItem (id, t) {
       this[t] = this[t].filter(item => {
         return item.id !== id
       })
     },
-    addItem (id, title, t) {
+    addItem (id, imgURL, t) {
       const item = {
         id: id,
-        title: `${title}`,
+        imgURL: `${imgURL}`,
         inputValue: this.sort.length + 1
       }
       this[t].push(item)
@@ -102,6 +105,35 @@ export default {
         this.btnActive = true
         return this.btnActive
       }
+    },
+    // 上傳檔案
+    previewImage () {
+      const input = event.target
+      if (input.files) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          this.preview = e.target.result
+        }
+        this.image = input.files[0]
+        reader.readAsDataURL(input.files[0])
+      }
+    },
+    // 儲存檔案
+    storeImg (preview) {
+      if (this.image !== null) {
+        this.addItem(Date.now(), preview, 'unsort')
+        this.preview = null
+        this.image = null
+      }
+    },
+    // 重設檔案
+    resetImg () {
+      this.preview = null
+      this.image = null
+    },
+    // 刪除檔案
+    deleteImg (id) {
+      this.deleteItem(id, 'unsort')
     }
   },
   computed: {
@@ -146,9 +178,9 @@ export default {
                     class="TopListItemTemplate"
                     v-for="(TopListItem, index) in sorting"
                     :key="index"
-                    :title="TopListItem.title"
+                    :imgURL="TopListItem.imgURL"
                     :inputValue="TopListItem.inputValue"
-                    @removeSort="removeSort(TopListItem.id, TopListItem.title)"
+                    @removeSort="removeSort(TopListItem.id, TopListItem.imgURL)"
                     @change="($value) => sortByInput(TopListItem, $value)"
                   ></TopListItemTemplate>
                 </tbody>
@@ -184,9 +216,10 @@ export default {
                     class="ToppingListItemTemplate"
                     v-for="(ToppingListItem, index) in unsort"
                     :key="index"
-                    :title="ToppingListItem.title"
-                    @addSort="addSort(ToppingListItem.id, ToppingListItem.title)"
+                    :imgURL="ToppingListItem.imgURL"
                     :btn-active="btnActive"
+                    @deleteImg="deleteImg(ToppingListItem.id)"
+                    @addSort="addSort(ToppingListItem.id, ToppingListItem.imgURL)"
                   ></ToppingListItemTemplate>
                 </tbody>
               </table>
@@ -194,6 +227,18 @@ export default {
           </div>
         </div>
       </div>
+
+      <hr class="my-4" />
+
+      <form action="" enctype="multipart/form-data">
+        <button type="reset" @click="resetImg" class="btn btn-secondary">取消</button>
+        <button type="reset" @click="storeImg(preview)" class="btn btn-success mx-3">確認</button>
+        <input id="imgInp" name="progressbarTW_img" type="file" accept="image/jpeg, image/png" @change="previewImage">
+        <div class="mt-4" v-if="preview">
+          <img :src="preview" width="670" alt="" />
+        </div>
+      </form>
+
     </div>
   </section>
 </template>
